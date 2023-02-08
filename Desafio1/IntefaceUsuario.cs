@@ -12,6 +12,14 @@ namespace Desafio1
     public class InterfaceUsuario
     {
         private Menus estado;
+        public PacienteDAO PacienteDAO { get; private set; }
+        public ConsultaDAO ConsultaDAO { get; private set; }
+
+        public InterfaceUsuario()
+        {
+            PacienteDAO = new PacienteDAO();
+            ConsultaDAO = new ConsultaDAO();
+        }
 
         internal void MenuPrincipal()
         {
@@ -96,17 +104,19 @@ namespace Desafio1
 
                         if (isValid)
                         {
-                            var paciente = new Paciente(validador.Paciente.Nome, validador.Paciente.Cpf, validador.Paciente.DataNascimento);
+                            Paciente paciente = null;
+                            paciente = PacienteDAO.findPaciente(validador.Paciente.Cpf);
 
-                            if (Controlador.Pacientes.Contains(paciente))
+                            if (paciente != null)
                             {
                                 Console.WriteLine("\nCPF: {0}\r\nErro: CPF já cadastrado\n", paciente.formatCPF(paciente.Cpf));
                             }
 
                             else 
                             {
+                                paciente = new Paciente(validador.Paciente.Nome, validador.Paciente.Cpf, validador.Paciente.DataNascimento);
                                 Console.WriteLine("\nPaciente cadastrado com sucesso!");
-                                Controlador.Pacientes.Add(paciente);
+                                PacienteDAO.Adicionar(paciente);
                             }
                         }
                         else
@@ -123,11 +133,11 @@ namespace Desafio1
 
                     Paciente? p = null;
 
-                    if ((p = Controlador.findPaciente(long.Parse(cpf))) != null)
+                    if ((p = PacienteDAO.findPaciente(long.Parse(cpf))) != null)
                     {
                         if (!p.TemConsultaFutura())
                         {
-                            Controlador.excluiPaciente(p);
+                            PacienteDAO.Remover(p);
                             Console.WriteLine("\nPaciente excluído com sucesso!");
                         }
                         else
@@ -142,11 +152,11 @@ namespace Desafio1
                     break;
 
                 case (int)EnumMenuCadastro.LISTAR_CPF:
-                    Controlador.ListarPacientes(CampoPaciente.CPF);
+                    Controlador.ListarPacientes(PacienteDAO.PacientesCpf());
                     break;
 
                 case (int)EnumMenuCadastro.LISTAR_NOME:
-                    Controlador.ListarPacientes(CampoPaciente.NOME);
+                    Controlador.ListarPacientes(PacienteDAO.PacientesNome());
                     break;
 
                 case (int)EnumMenuCadastro.VOLTAR:
@@ -186,17 +196,17 @@ namespace Desafio1
                         { 
                             p = null;
 
-                            p = Controlador.findPaciente(long.Parse(cpf));
+                            p = PacienteDAO.findPaciente(long.Parse(cpf));
                             var consulta = new Consulta(validador.Consulta.Data, validador.Consulta.HoraInicial, validador.Consulta.HoraFinal, p);
                             if (p != null)
                             {
-                                if (!Controlador.Intersecao(consulta))
+                                if (!ConsultaDAO.Intersecao(consulta))
                                 {
                                     if (!p.TemConsultaFutura())
                                     {
                                         Console.WriteLine("\nAgendamento realizado com sucesso!");
                                         p.Consultas.Add(consulta);
-                                        Controlador.Agenda.Add(consulta);
+                                        ConsultaDAO.Adicionar(consulta);
                                     }
                                     else
                                         Console.WriteLine("Erro: paciente está agendado.");
@@ -230,14 +240,14 @@ namespace Desafio1
                     Console.Write("\nHora inicial: ");
                     string horaI = Console.ReadLine();
 
-                    p = Controlador.findPaciente(long.Parse(cpf));
+                    p = PacienteDAO.findPaciente(long.Parse(cpf));
 
                     if (p == null)
                     {
                         Console.WriteLine("\nErro: paciente não cadastrado");
                     }
 
-                    else if (Controlador.cancelarConsulta(long.Parse(cpf), data, horaI))
+                    else if (ConsultaDAO.cancelarConsulta(long.Parse(cpf), data, horaI, p))
                     {
                         Console.WriteLine("\nAgendamento cancelado com sucesso!");
                     }
@@ -261,11 +271,11 @@ namespace Desafio1
 
 
                         Controlador.ListarAgenda(ListaAgenda.PERIODO, DateTime.ParseExact(dataI, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture),
-                            DateTime.ParseExact(dataF, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture));
+                            DateTime.ParseExact(dataF, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture), ConsultaDAO.Consultas());
                     }
                     else if (tipo.Equals("T"))
                     {
-                        Controlador.ListarAgenda(ListaAgenda.TODA, null, null);
+                        Controlador.ListarAgenda(ListaAgenda.TODA, null, null, ConsultaDAO.Consultas());
                     }
                     else
                     {

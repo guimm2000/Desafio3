@@ -8,13 +8,20 @@ namespace Desafio1
 {
     public class Consulta
     {
+        public int Id { get; private set; }
         public DateTime Data { get; private set; }
         public TimeSpan HoraInicial { get; private set; }
         public TimeSpan HoraFinal { get; private set; }
 
         //Decidi por adicionar um paciente na classe Consulta para usar na hora de imprimir a lista de consultas
         public Paciente Paciente { get; private set; }
+        public int PacienteId { get; private set; }
+        
+        //Tive que criar esse construtor pois estava dando uma exception dizendo que era impossível fazer o bind paciente-consulta
+        private Consulta()
+        {
 
+        }
 
         public Consulta(DateTime data, TimeSpan horaInicial, TimeSpan horaFinal, Paciente paciente)
         {

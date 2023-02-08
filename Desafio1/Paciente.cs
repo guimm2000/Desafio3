@@ -9,6 +9,7 @@ namespace Desafio1
 {
     public class Paciente
     {
+        public int Id { get; private set; }
         public string Nome { get; private set; }
         public long Cpf { get; private set; }
         public DateTime DataNascimento { get; private set; }
